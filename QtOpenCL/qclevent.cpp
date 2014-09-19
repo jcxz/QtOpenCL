@@ -485,7 +485,7 @@ QDebug operator<<(QDebug dbg, const QCLEvent &event)
     }
     if (status != CL_COMPLETE) {
         // Command is not complete: no profiling information yet.
-        dbg << "QCLEvent(id:" << reinterpret_cast<long>(id)
+        dbg << "QCLEvent(id:" << reinterpret_cast<ptrdiff_t>(id)
             << "request:" << commandName
             << "status:" << statusName
             << ")";
@@ -502,7 +502,7 @@ QDebug operator<<(QDebug dbg, const QCLEvent &event)
                  sizeof(finishTime), &finishTime, 0) != CL_SUCCESS) {
             // Profiling information is not available, probably
             // because it was not enabled on the command queue.
-            dbg << "QCLEvent(id:" << reinterpret_cast<long>(id)
+            dbg << "QCLEvent(id:" << reinterpret_cast<ptrdiff_t>(id)
                 << "request:" << commandName
                 << "status:" << statusName
                 << ")";
@@ -510,7 +510,7 @@ QDebug operator<<(QDebug dbg, const QCLEvent &event)
             // Include profiling information in the debug output.
             qreal fullDuration = (finishTime - queueTime) / 1000000.0f;
             qreal runDuration = (finishTime - runTime) / 1000000.0f;
-            dbg << "QCLEvent(id:" << reinterpret_cast<long>(id)
+            dbg << "QCLEvent(id:" << reinterpret_cast<ptrdiff_t>(id)
                 << "request:" << commandName
                 << "status:" << statusName
                 << "full-time:" << fullDuration

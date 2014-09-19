@@ -31,6 +31,10 @@ dbgsyms {
   DESTDIR = $${DESTDIR}_dbgsyms
 }
 
+x86 {
+  DESTDIR = $${DESTDIR}_x86
+}
+
 OBJECTS_DIR = $${DESTDIR}/.obj
 MOC_DIR = $${DESTDIR}/.obj
 UI_DIR = $${DESTDIR}/.obj
