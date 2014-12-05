@@ -1145,37 +1145,37 @@ QCLProgram QCLContext::createProgramFromBinaries
 
 /*!
     Creates an OpenCL program object from the supplied \a sourceCode
-    and then builds it.  Returns a null QCLProgram if the program
+    and then builds it with \a options.  Returns a null QCLProgram if the program
     could not be built.
 
     \sa createProgramFromSourceCode(), buildProgramFromSourceFile()
 */
-QCLProgram QCLContext::buildProgramFromSourceCode(const QByteArray &sourceCode)
+QCLProgram QCLContext::buildProgramFromSourceCode(const QByteArray &sourceCode, const QString &options)
 {
     QCLProgram program = createProgramFromSourceCode(sourceCode);
-    if (program.isNull() || program.build())
+    if (program.isNull() || program.build(options))
         return program;
     return QCLProgram();
 }
 
 /*!
     Creates an OpenCL program object from the contents of the supplied
-    \a fileName and then builds it.  Returns a null QCLProgram if the
+    \a fileName and then builds it with \a options.  Returns a null QCLProgram if the
     program could not be built.
 
     \sa createProgramFromSourceFile(), buildProgramFromSourceCode()
 */
-QCLProgram QCLContext::buildProgramFromSourceFile(const QString &fileName)
+QCLProgram QCLContext::buildProgramFromSourceFile(const QString &fileName, const QString &options)
 {
     QCLProgram program = createProgramFromSourceFile(fileName);
-    if (program.isNull() || program.build())
+    if (program.isNull() || program.build(options))
         return program;
     return QCLProgram();
 }
 
 /*!
     Creates an OpenCL program object from the supplied \a binary
-    for defaultDevice() and then builds it.  Returns a null QCLProgram
+    for defaultDevice() and then builds it with \a options.  Returns a null QCLProgram
     if the program could not be built.
 
     This function can only load the binary for a single device.  For multiple
@@ -1184,42 +1184,42 @@ QCLProgram QCLContext::buildProgramFromSourceFile(const QString &fileName)
     \sa createProgramFromBinaryCode(), buildProgramFromBinaryFile()
     \sa buildProgramFromBinaries()
 */
-QCLProgram QCLContext::buildProgramFromBinaryCode(const QByteArray &binary)
+QCLProgram QCLContext::buildProgramFromBinaryCode(const QByteArray &binary, const QString &options)
 {
     QCLProgram program = createProgramFromBinaryCode(binary);
-    if (program.isNull() || program.build())
+    if (program.isNull() || program.build(options))
         return program;
     return QCLProgram();
 }
 
 /*!
     Creates an OpenCL program object from the binary contents of the supplied
-    \a fileName for defaultDevice() and then builds it.  Returns a null
+    \a fileName for defaultDevice() and then builds it with \a options.  Returns a null
     QCLProgram if the program could not be built.
 
     \sa createProgramFromBinaryFile(), buildProgramFromBinaryCode()
 */
-QCLProgram QCLContext::buildProgramFromBinaryFile(const QString &fileName)
+QCLProgram QCLContext::buildProgramFromBinaryFile(const QString &fileName, const QString &options)
 {
     QCLProgram program = createProgramFromBinaryFile(fileName);
-    if (program.isNull() || program.build())
+    if (program.isNull() || program.build(options))
         return program;
     return QCLProgram();
 }
 
 /*!
     Creates an OpenCL program object from the list of \a binaries for
-    \a devices and then builds the program.  Returns a null QCLProgram if
+    \a devices and then builds the program with \a options.  Returns a null QCLProgram if
     the program could not be built.  The \a binaries and \a devices lists
     must have the same number of elements.
 
     \sa createProgramFromBinaries(), buildProgramFromBinaryCode()
 */
 QCLProgram QCLContext::buildProgramFromBinaries
-    (const QList<QCLDevice> &devices, const QList<QByteArray> &binaries)
+    (const QList<QCLDevice> &devices, const QList<QByteArray> &binaries, const QString &options)
 {
     QCLProgram program = createProgramFromBinaries(devices, binaries);
-    if (program.isNull() || program.build())
+    if (program.isNull() || program.build(options))
         return program;
     return QCLProgram();
 }

@@ -137,12 +137,12 @@ public:
     QCLProgram createProgramFromBinaries
         (const QList<QCLDevice> &devices, const QList<QByteArray> &binaries);
 
-    QCLProgram buildProgramFromSourceCode(const QByteArray &sourceCode);
-    QCLProgram buildProgramFromSourceFile(const QString &fileName);
-    QCLProgram buildProgramFromBinaryCode(const QByteArray &binary);
-    QCLProgram buildProgramFromBinaryFile(const QString &fileName);
+    QCLProgram buildProgramFromSourceCode(const QByteArray &sourceCode, const QString &options = QString());
+    QCLProgram buildProgramFromSourceFile(const QString &fileName, const QString &options = QString());
+    QCLProgram buildProgramFromBinaryCode(const QByteArray &binary, const QString &options = QString());
+    QCLProgram buildProgramFromBinaryFile(const QString &fileName, const QString &options = QString());
     QCLProgram buildProgramFromBinaries
-        (const QList<QCLDevice> &devices, const QList<QByteArray> &binaries);
+        (const QList<QCLDevice> &devices, const QList<QByteArray> &binaries, const QString &options = QString());
 
     QList<QCLImageFormat> supportedImage2DFormats(cl_mem_flags flags) const;
     QList<QCLImageFormat> supportedImage3DFormats(cl_mem_flags flags) const;
