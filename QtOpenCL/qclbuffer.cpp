@@ -412,8 +412,8 @@ bool QCLBuffer::writeRect
      size_t bufferBytesPerLine, size_t hostBytesPerLine)
 {
 #ifdef QT_OPENCL_1_1
-    size_t bufferOrigin[3] = {rect.x(), rect.y(), 0};
-    size_t bufferRegion[3] = {rect.width(), rect.height(), 1};
+    size_t bufferOrigin[3] = { (size_t) rect.x(), (size_t) rect.y(), 0};
+    size_t bufferRegion[3] = { (size_t) rect.width(), (size_t) rect.height(), 1};
     static size_t const hostOrigin[3] = {0, 0, 0};
     cl_int error = clEnqueueWriteBufferRect
         (context()->activeQueue(), memoryId(),
