@@ -41,7 +41,7 @@ MOC_DIR = $${DESTDIR}/.obj
 UI_DIR = $${DESTDIR}/.obj
 RCC_DIR = $${DESTDIR}/.obj
 
-INCLUDEPATH += $$PWD/../QtOpenCL
+INCLUDEPATH += $$PWD/..
 LIBS += -L$${DESTDIR}
 LIBS += -lQtOpenCL
 

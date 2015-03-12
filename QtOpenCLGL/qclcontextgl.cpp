@@ -138,6 +138,7 @@ static void CL_CALLBACK qt_clgl_context_notify(const char *errinfo,
 */
 bool QCLContextGL::create(const QCLPlatform &platform)
 {
+#if 0
     Q_D(QCLContextGL);
 
     // Bail out if the context already exists.
@@ -208,6 +209,14 @@ bool QCLContextGL::create(const QCLPlatform &platform)
         properties.append(cl_context_properties(glXGetCurrentContext()));
         hasSharing = true;
     }
+#elif defined(Q_OS_WIN)
+    if (khrSharing) {
+        properties.append(CL_GL_CONTEXT_KHR);
+        properties.append(cl_context_properties(wglGetCurrentContext()));
+        properties.append(CL_WGL_HDC_KHR);
+        properties.append(cl_context_properties(wglGetCurrentDC()));
+        hasSharing = true;
+    }
 #else
     // Needs to be ported to other platforms.
     if (khrSharing)
@@ -222,14 +231,13 @@ bool QCLContextGL::create(const QCLPlatform &platform)
     typedef cl_int (*q_PFNCLGETGLCONTEXTINFOKHR)
         (const cl_context_properties *, cl_uint, size_t, void *, size_t *);
     q_PFNCLGETGLCONTEXTINFOKHR getGLContextInfo =
-        (q_PFNCLGETGLCONTEXTINFOKHR)clGetExtensionFunctionAddress
-            ("clGetGLContextInfoKHR");
+        (q_PFNCLGETGLCONTEXTINFOKHR) clGetExtensionFunctionAddress("clGetGLContextInfoKHR");
     if (getGLContextInfo && hasSharing) {
         size_t size;
         cl_device_id currentDev;
-        if(getGLContextInfo(properties.data(),
-                            CL_DEVICES_FOR_GL_CONTEXT_KHR,
-                            0, 0, &size) == CL_SUCCESS && size > 0) {
+        if (getGLContextInfo(properties.data(),
+                             CL_DEVICES_FOR_GL_CONTEXT_KHR,
+                             0, 0, &size) == CL_SUCCESS && size > 0) {
             QVarLengthArray<cl_device_id> buf(size / sizeof(cl_device_id));
             getGLContextInfo(properties.data(),
                              CL_DEVICES_FOR_GL_CONTEXT_KHR,
@@ -249,17 +257,15 @@ bool QCLContextGL::create(const QCLPlatform &platform)
     // Create the OpenCL context.
     cl_context id;
     cl_int error;
-    id = clCreateContext
-        (properties.data(), devs.size(), devs.data(),
-         qt_clgl_context_notify, 0, &error);
+    id = clCreateContext(properties.data(), devs.size(), devs.data(),
+                         qt_clgl_context_notify, 0, &error);
     if (!id && hasSharing) {
         // Try again without the sharing parameters.
         properties.resize(2);
         properties.append(0);
         hasSharing = false;
-        id = clCreateContext
-            (properties.data(), devs.size(), devs.data(),
-             qt_clgl_context_notify, 0, &error);
+        id = clCreateContext(properties.data(), devs.size(), devs.data(),
+                             qt_clgl_context_notify, 0, &error);
     }
     setLastError(error);
     if (id == 0) {
@@ -272,6 +278,103 @@ bool QCLContextGL::create(const QCLPlatform &platform)
         d->supportsSharing = hasSharing;
     }
     return id != 0;
+#else
+  Q_D(QCLContextGL);
+
+  // Bail out if the context already exists.
+  if (isCreated()) return true;
+
+  // Bail out if we don't have an OpenGL context.
+  if (!QGLContext::currentContext())
+  {
+    qWarning() << "QCLContextGL::create: needs a current GL context";
+    setLastError(CL_INVALID_CONTEXT);
+    return false;
+  }
+
+  // get the address of extension loading function
+  clGetGLContextInfoKHR_fn clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddress("clGetGLContextInfoKHR");
+  if (clGetGLContextInfoKHR == NULL) return false;
+
+  // try to find the device that is running under the current OpenGL contextsd
+  cl_device_id dev = NULL;
+
+#if defined(__APPLE__) || defined(__MACOSX)
+  cl_context_properties props[] = {
+    CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
+    (cl_context_properties) CGLGetShareGroup(CGLGetCurrentContext()),
+    0
+  };
+
+  cl_int err = clGetGLContextInfoKHR(props, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(dev), &dev, NULL);
+  if (err != CL_SUCCESS)
+  {
+    setLastError(err);
+    return false;
+  }
+#else
+#if defined(FLUIDSIM_OS_UNIX)
+  cl_context_properties props[] = {
+    CL_GL_CONTEXT_KHR,   (cl_context_properties) glXGetCurrentContext(),
+    CL_GLX_DISPLAY_KHR,  (cl_context_properties) glXGetCurrentDisplay(),
+    CL_CONTEXT_PLATFORM, (cl_context_properties) NULL,
+    0
+  };
+#elif defined(Q_OS_WIN)
+  cl_context_properties props[] = {
+    CL_GL_CONTEXT_KHR,   (cl_context_properties) wglGetCurrentContext(),
+    CL_WGL_HDC_KHR,      (cl_context_properties) wglGetCurrentDC(),
+    CL_CONTEXT_PLATFORM, (cl_context_properties) NULL,
+    0
+  };
+#elif defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES)
+#ifdef EGL_OPENGL_ES_API
+  eglBindAPI(EGL_OPENGL_ES_API);
+#endif
+  cl_context_properties props[] = {
+    CL_EGL_DISPLAY_KHR,  (cl_context_properties) eglGetCurrentDisplay(),
+    CL_GL_CONTEXT_KHR,   (cl_context_properties) eglGetCurrentContext(),
+    CL_CONTEXT_PLATFORM, (cl_context_properties) NULL,
+    0
+  };
+#else
+  // Needs to be ported to other platforms.
+  qWarning() << "QCLContextGL::create: do not know how to enable sharing";
+  return false;
+#endif
+  QList<QCLPlatform> platform_list = QCLPlatform::platforms();
+
+  for (QList<QCLPlatform>::iterator it =  platform_list.begin(); it != platform_list.end(); ++it)
+  {
+    props[5] = (cl_context_properties) it->platformId();
+    cl_int err = clGetGLContextInfoKHR(props, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(dev), &dev, NULL);
+    if (err == CL_SUCCESS) break;
+  }
+
+  if ((props[5] == 0) || (dev == NULL))
+  {
+    qWarning() << "QCLContextGL::create: could not find any OpenGL device";
+    setLastError(CL_DEVICE_NOT_FOUND);
+    return false;
+  }
+#endif
+
+  // create the context
+  cl_int err = CL_SUCCESS;
+  cl_context ctx = clCreateContext(props, 1, &dev, qt_clgl_context_notify, NULL, &err);
+  if (err != CL_SUCCESS)
+  {
+    setLastError(err);
+    return false;
+  }
+
+  setContextId(ctx);
+  clReleaseContext(ctx);      // because setContextId increments reference counter
+  setDefaultDevice(dev);
+  d->supportsSharing = true;
+
+  return true;
+#endif
 }
 
 /*!
