@@ -1097,16 +1097,9 @@ QList<QCLDevice> QCLDevice::allDevices()
     return devs;
 }
 
-/*!
-    Returns a list of all OpenCL devices that match \a types on
-    \a platform on this system.  If \a platform is null, then
-    the first platform that has devices matching \a types will
-    be used.
 
-    \sa allDevices()
-*/
-QList<QCLDevice> QCLDevice::devices
-    (QCLDevice::DeviceTypes types, const QCLPlatform &platform)
+static QList<QCLDevice> qt_cl_getDevicesForPlatform
+    (QCLDevice::DeviceTypes types, const QCLPlatform &platform, bool break_on_first)
 {
     QList<QCLDevice> devs;
     QList<QCLPlatform> platforms;
@@ -1126,9 +1119,37 @@ QList<QCLDevice> QCLDevice::devices
                        size, buf.data(), &size);
         for (int index = 0; index < buf.size(); ++index)
             devs.append(QCLDevice(buf[index]));
-        break;
+        if (break_on_first) break;
     }
     return devs;
+}
+
+/*!
+    Returns a list of all OpenCL devices that match \a types on
+    \a platform on this system.  If \a platform is null, then
+    the first platform that has devices matching \a types will
+    be used.
+
+    \sa allDevices(), devices()
+*/
+QList<QCLDevice> QCLDevice::platformDevices
+    (QCLDevice::DeviceTypes types, const QCLPlatform &platform)
+{
+    return qt_cl_getDevicesForPlatform(types, platform, true);
+}
+
+/*!
+    Returns a list of all OpenCL devices that match \a types on
+    \a platform on this system.  If \a platform is null, then
+    every platform that has devices matching \a types will
+    be used.
+
+    \sa allDevices(), devices()
+*/
+QList<QCLDevice> QCLDevice::devices
+    (QCLDevice::DeviceTypes types, const QCLPlatform &platform)
+{
+    return qt_cl_getDevicesForPlatform(types, platform, false);
 }
 
 /*!

@@ -172,6 +172,9 @@ public:
     cl_device_id deviceId() const { return m_id; }
 
     static QList<QCLDevice> allDevices();
+    static QList<QCLDevice> platformDevices
+        (QCLDevice::DeviceTypes types,
+         const QCLPlatform &platform = QCLPlatform());
     static QList<QCLDevice> devices
         (QCLDevice::DeviceTypes types,
          const QCLPlatform &platform = QCLPlatform());
